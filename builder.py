@@ -90,32 +90,50 @@ def click_popups_section(driver,timeout):
     click_popups_section = driver.find_element(by=By.XPATH, value='//span[text()="Popups"]')
     click_popups_section.click()
 
-def find_template_settings(driver, timeout):
-    try:
-        element_present = EC.presence_of_element_located((By.XPATH, '//label[text()="Template Listing"]'))
-        WebDriverWait(driver, timeout).until(element_present)
+#def find_template_settings(driver, timeout):
+#    try:
+#        element_present = EC.presence_of_element_located((By.XPATH, '//label[text()="Template Listing"]'))
+#        WebDriverWait(driver, timeout).until(element_present)
+#
+#    except TimeoutException:
+#        print("Timed out waiting for Template Listing to Load")
+#        sys.exit()
+#
+#    click_template_section = driver.find_element(by=By.XPATH, value='//label[text()="Template Listing"]')
+#
+#    # Find the parent div using ancestor::div with specific classes
+#    parent_div = click_template_section.find_element(By.XPATH, "./ancestor::div[contains(@class, 'ListItem-listItem') and contains(@class, 'ListItem-selectable')]")
+#
+#    # Scroll the SVG element into view
+#    driver.execute_script("arguments[0].scrollIntoView(true);", parent_div)
+#
+#    # Click on the SVG icon
+#    svg_icon = parent_div.find_elements(By.XPATH, '//div//span//span[@data-name="icon-settings"]')
+#    svg_icon[16].click()
 
-    except TimeoutException:
-        print("Timed out waiting for Template Listing to Load")
-        sys.exit()
+def find_template_settings(driver, timeout, template):
 
-    try:
-        click_template_section = driver.find_element(by=By.XPATH, value='//label[text()="Template Listing"]')
+    # Wait for the label "Template Listing" to be present
+    element_present = EC.presence_of_element_located((By.XPATH, f'//label[text()="{template}"]'))
+    WebDriverWait(driver, 10).until(element_present)
 
-        # Find the parent div using ancestor::div with specific classes
-        parent_div = click_template_section.find_element(By.XPATH, "./ancestor::div[contains(@class, 'ListItem-listItem') and contains(@class, 'ListItem-selectable')]")
+    # Find the label element
+    label_element = driver.find_element(By.XPATH, f'//label[text()="{template}"]')
 
-        # Scroll the SVG element into view
-        driver.execute_script("arguments[0].scrollIntoView(true);", parent_div)
+    # Find the adjacent span element with data-name="icon-settings"
+    adjacent_icon_settings = label_element.find_element(By.XPATH, './following::span[@data-name="icon-settings"][1]')
 
-        # Click on the SVG icon
-        svg_icon = parent_div.find_elements(By.XPATH, '//div//span//span[@data-name="icon-settings"]')
-        svg_icon[16].click()
+    # Scroll the adjacent icon settings element into view
+    driver.execute_script("arguments[0].scrollIntoView(true);", adjacent_icon_settings)
 
-    except Exception as e:
-        print(f"Failed to duplicate and rename parent <div>: {str(e)}")
+    # Perform actions on the adjacent icon settings element (e.g., click)
+    adjacent_icon_settings.click()
+
+
 
 def duplicate_entry(driver, timeout, mls):
+        
+        duplicate_template = "Template Listing"
         # Find the "Duplicate" menu item within the context menu
         duplicate_menu_item = driver.find_element(By.XPATH, ".//div[@data-auto='duplicate']")
 
@@ -128,7 +146,7 @@ def duplicate_entry(driver, timeout, mls):
         new_label_text = f"TT: {mls}"
 
         # Locate the input element based on its attributes
-        input_element = driver.find_element(By.XPATH, "//input[@value='Copy of Template Listing']")
+        input_element = driver.find_element(By.XPATH, f"//input[@value='Copy of {duplicate_template}']")
         input_element.clear()  
         input_element.send_keys(new_label_text)
 
@@ -136,20 +154,62 @@ def duplicate_entry(driver, timeout, mls):
         duplicate_me.click()
 
 
+def rename_entry(driver, timeout, mls, rename_template):
+        # Find the "Rename" menu item within the context menu
+        rename_menu_item = driver.find_element(By.XPATH, ".//div[@data-auto='rename']")
+
+        # Scroll into view of the "Rename" menu item
+        driver.execute_script("arguments[0].scrollIntoView(true);", rename_menu_item)
+
+        # Click on the "Rename" menu item
+        rename_menu_item.click()
+        
+        label = f"TT: {mls}"
+
+        # Locate the input element based on its attributes
+        input_element = driver.find_element(By.XPATH, f"//input[@value='{label}']")
+        input_element.clear()  
+        input_element.send_keys(rename_template)
+
+        duplicate_me = driver.find_element(By.XPATH, '//div[@role="button"]')
+        duplicate_me.click()
+
+
+def delete_entry(driver, timeout):
+        # Find the "Delete" menu item within the context menu
+        delete_menu_item = driver.find_element(By.XPATH, ".//div[@data-auto='delete']")
+
+        # Scroll into view of the "Delete" menu item
+        driver.execute_script("arguments[0].scrollIntoView(true);", delete_menu_item)
+
+        # Click on the "Delete" menu item
+        delete_menu_item.click()
+
+        yes_button = driver.find_element(By.XPATH, '//button[@data-auto="yes-button"]')
+        yes_button.click()
+
+
 def main():
     timeout = 20
     add_username = "otonielyone@gmail.com"
     add_password = "Exotica12345"
-    list = ['VAFX2192025']
     driver = setup_options()
     login(driver, timeout, add_username, add_password)
     click_page_section(driver,timeout)
     click_popups_section(driver,timeout)
-    find_template_settings(driver,timeout)
-    
-    for mls in list:
-        duplicate_entry(driver,timeout,mls)
 
+    #Find Template provided 
+    find_template = "Template Listing" 
+    find_template_settings(driver,timeout, find_template)
+
+    #Duplicate / Delete or Rename Template
+    list = ["VAFX2192025"]
+    for mls in list:0
+        duplicate_entry(driver,timeout, mls)
+    #    rename_template = "TEST NAME"
+    #    rename_entry(driver,timeout, mls, rename_template)
+    #    delete_entry(driver,timeout)
+        
     time.sleep(10)
     driver.quit()
 
