@@ -115,7 +115,7 @@ def find_template_settings(driver, timeout, template):
 
     # Wait for the label "Template Listing" to be present
     element_present = EC.presence_of_element_located((By.XPATH, f'//label[text()="{template}"]'))
-    WebDriverWait(driver, 10).until(element_present)
+    WebDriverWait(driver, 20).until(element_present)
 
     # Find the label element
     label_element = driver.find_element(By.XPATH, f'//label[text()="{template}"]')
@@ -132,8 +132,9 @@ def find_template_settings(driver, timeout, template):
 
 
 def duplicate_entry(driver, timeout, mls):
-        
-        duplicate_template = "Template Listing"
+                
+        find_template_settings(driver,timeout, "Template Listing")
+
         # Find the "Duplicate" menu item within the context menu
         duplicate_menu_item = driver.find_element(By.XPATH, ".//div[@data-auto='duplicate']")
 
@@ -146,7 +147,7 @@ def duplicate_entry(driver, timeout, mls):
         new_label_text = f"TT: {mls}"
 
         # Locate the input element based on its attributes
-        input_element = driver.find_element(By.XPATH, f"//input[@value='Copy of {duplicate_template}']")
+        input_element = driver.find_element(By.XPATH, f"//input[@value='Copy of Template Listing']")
         input_element.clear()  
         input_element.send_keys(new_label_text)
 
@@ -155,6 +156,11 @@ def duplicate_entry(driver, timeout, mls):
 
 
 def rename_entry(driver, timeout, mls, rename_template):
+
+        find_template = f"TT: {mls}"
+
+        find_template_settings(driver,timeout, f"{find_template}")
+
         # Find the "Rename" menu item within the context menu
         rename_menu_item = driver.find_element(By.XPATH, ".//div[@data-auto='rename']")
 
@@ -164,10 +170,8 @@ def rename_entry(driver, timeout, mls, rename_template):
         # Click on the "Rename" menu item
         rename_menu_item.click()
         
-        label = f"TT: {mls}"
-
         # Locate the input element based on its attributes
-        input_element = driver.find_element(By.XPATH, f"//input[@value='{label}']")
+        input_element = driver.find_element(By.XPATH, f"//input[@value='{find_template}']")
         input_element.clear()  
         input_element.send_keys(rename_template)
 
@@ -175,18 +179,24 @@ def rename_entry(driver, timeout, mls, rename_template):
         duplicate_me.click()
 
 
-def delete_entry(driver, timeout):
+def delete_entry(driver, timeout, mls):
+        
+        find_template = f"TT: {mls}"
+
+        find_template_settings(driver,timeout, f"{find_template}")
+
         # Find the "Delete" menu item within the context menu
         delete_menu_item = driver.find_element(By.XPATH, ".//div[@data-auto='delete']")
 
         # Scroll into view of the "Delete" menu item
-        driver.execute_script("arguments[0].scrollIntoView(true);", delete_menu_item)
+        if delete_menu_item:
+            driver.execute_script("arguments[0].scrollIntoView(true);", delete_menu_item)
 
-        # Click on the "Delete" menu item
-        delete_menu_item.click()
+            # Click on the "Delete" menu item
+            delete_menu_item.click()
 
-        yes_button = driver.find_element(By.XPATH, '//button[@data-auto="yes-button"]')
-        yes_button.click()
+            yes_button = driver.find_element(By.XPATH, '//button[@data-auto="yes-button"]')
+            yes_button.click()
 
 
 def main():
@@ -198,17 +208,12 @@ def main():
     click_page_section(driver,timeout)
     click_popups_section(driver,timeout)
 
-    #Find Template provided 
-    find_template = "Template Listing" 
-    find_template_settings(driver,timeout, find_template)
-
-    #Duplicate / Delete or Rename Template
-    list = ["VAFX2192025"]
-    for mls in list:0
+    list = ["VAFX2192025","VAFX2192026"]
+    for mls in list:
         duplicate_entry(driver,timeout, mls)
-    #    rename_template = "TEST NAME"
-    #    rename_entry(driver,timeout, mls, rename_template)
-    #    delete_entry(driver,timeout)
+    #2.    rename_template = f"TT: {mls}"
+    #2.    rename_entry(driver,timeout, mls, rename_template)
+    #3.    delete_entry(driver,timeout,mls)
         
     time.sleep(10)
     driver.quit()
